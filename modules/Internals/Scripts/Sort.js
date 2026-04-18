@@ -1,5 +1,5 @@
 function sort(el, status)
-{ 
+{
     var col_sort = el.innerHTML;
     var tr = el.parentNode;
     var table = tr.parentNode;
@@ -42,7 +42,7 @@ function sort(el, status)
             }
         }
     }
-    
+
     var a = new Array();
     for(var i=1; i < table.rows.length; i++)
     {
@@ -65,11 +65,11 @@ function sort(el, status)
             a[i-1][2] = null;
         }
     }
-    
+
     // sort table
     a.sort(sort_array);
     if(el.up) a.reverse();
-    
+
     // draw table
     for(var i in a)
     {

@@ -83,7 +83,7 @@ Content:
    Compare two packages:
 
      pkgdiff PKG1 PKG2
-     
+
    For advanced usage, see output of --help option
 
 

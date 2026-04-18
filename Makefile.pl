@@ -90,12 +90,12 @@ sub scenario()
         print STDERR "ERROR: command is not selected (-install or -remove)\n";
         exit(1);
     }
-    
+
     if($Install)
     { # remove old version first
         $Remove = 1;
     }
-    
+
     if($PREFIX ne "/") {
         $PREFIX=~s/[\/]+\Z//g;
     }
@@ -143,14 +143,14 @@ sub scenario()
             exit(1);
         }
     }
-    
+
     print "INSTALL PREFIX: $PREFIX\n";
-    
+
     # paths
     my $EXE_PATH = "$PREFIX/bin";
     my $MODULES_PATH = "$PREFIX/share/$TOOL_SNAME";
     my $REL_PATH = "../share/$TOOL_SNAME";
-    
+
     if(not -w $PREFIX)
     {
         print STDERR "ERROR: you should be root\n";
@@ -166,7 +166,7 @@ sub scenario()
         elsif(not $Install) {
             print "The tool is not installed\n";
         }
-        
+
         if(-d $MODULES_PATH)
         { # remove modules
             print "-- Removing $MODULES_PATH\n";
@@ -186,27 +186,27 @@ sub scenario()
         else { # absolute path
             $Content=~s/MODULES_INSTALL_PATH/$MODULES_PATH/;
         }
-        
+
         # copy executable
         print "-- Installing $EXE_PATH/$TOOL_SNAME\n";
         mkpath($EXE_PATH);
         writeFile($EXE_PATH."/".$TOOL_SNAME, $Content);
         chmod(0755, $EXE_PATH."/".$TOOL_SNAME);
-        
+
         # copy modules
         if(-d $ARCHIVE_DIR."/modules")
         {
             print "-- Installing $MODULES_PATH\n";
             mkpath($MODULES_PATH);
             copyDir($ARCHIVE_DIR."/modules", $MODULES_PATH);
-            
+
             my $TOOLS_PATH = $MODULES_PATH."/modules/Internals/Tools";
             my @Tools = listDir($TOOLS_PATH);
             foreach my $Tool (@Tools) {
                 chmod(0755, $TOOLS_PATH."/".$Tool);
             }
         }
-        
+
         # check PATH
         if($ENV{"PATH"}!~/(\A|:)\Q$EXE_PATH\E[\/]?(\Z|:)/) {
             print "WARNING: your PATH variable doesn't include \'$EXE_PATH\'\n";
