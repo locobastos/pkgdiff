@@ -1968,9 +1968,14 @@ sub getReportHeaders()
     $Report .= "<tr><th>Package</th><th>Status</th><th>Delta</th><th>Visual Diff</th></tr>\n";
 
     my %Details = %{$InfoChanges{"Details"}};
+    my $Shown = 0;
     foreach my $Package (sort keys(%Details))
     {
         my $Status = $Details{$Package}{"Status"};
+        if($HideUnchanged and $Status eq "unchanged") {
+            next;
+        }
+        $Shown++;
         $Report .= "<tr>\n";
         if($Status eq "removed")
         {
@@ -2001,6 +2006,10 @@ sub getReportHeaders()
     }
     $Report .= "</table>\n";
 
+    if(not $Shown) {
+        return "";
+    }
+
     return $Report;
 }
 
@@ -2010,6 +2019,9 @@ sub getReportDeps()
     foreach my $Kind (sort keys(%DepChanges))
     {
         my @Names = keys(%{$DepChanges{$Kind}{"Details"}});
+        if($HideUnchanged) {
+            @Names = grep { $DepChanges{$Kind}{"Details"}{$_}{"Status"} ne "unchanged" } @Names;
+        }
         if(not @Names) {
             next;
         }
