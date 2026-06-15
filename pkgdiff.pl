@@ -2157,34 +2157,7 @@ sub getReportFiles()
             $FileChanges{$Format}{"Total"} = $Total;
         }
 
-        $Report .= "<a name='".$FormatInfo{$Format}{"Anchor"}."'></a>\n";
-        $Report .= "<h2>".$FormatInfo{$Format}{"Title"}." (".$FileChanges{$Format}{"Total"}.")</h2>\n";
-        $Report .= "<table class='summary highlight'>\n";
-        $Report .= "<tr>\n";
-        $Report .= "<th $JSort>Name</th>\n";
-        $Report .= "<th $JSort>Status</th>\n";
-        if($Format ne "DIR")
-        {
-            $Report .= "<th $JSort>Delta</th>\n";
-            $Report .= "<th>Visual<br/>Diff</th>\n";
-
-            if($ShowDetails)
-            {
-                $Report .= "<th>Detailed<br/>Report</th>\n";
-
-                if($Format eq "SHARED_OBJECT"
-                or $Format eq "KERNEL_MODULE"
-                or $Format eq "DEBUG_INFO"
-                or $Format eq "STATIC_LIBRARY")
-                {
-                    $Report .= "<th>ABI<br/>Dumps</th>\n";
-                    if($Debug) {
-                        $Report .= "<th>DWARF<br/>Dumps</th>\n";
-                    }
-                }
-            }
-        }
-        $Report .= "</tr>\n";
+        my $Rows = "";
         my %Details = %{$FileChanges{$Format}{"Details"}};
         foreach my $File (sort {lc($a) cmp lc($b)} keys(%Details))
         {
@@ -2238,58 +2211,58 @@ sub getReportFiles()
                 }
             }
 
-            $Report .= "<tr>\n";
-            $Report .= "<td class='left f_path$Color1\'>$ShowFile</td>\n";
+            $Rows .= "<tr>\n";
+            $Rows .= "<td class='left f_path$Color1\'>$ShowFile</td>\n";
             if($Info{"Status"} eq "changed") {
-                $Report .= "<td class='warning'>".$Info{"Status"}."</td>\n";
+                $Rows .= "<td class='warning'>".$Info{"Status"}."</td>\n";
             }
             elsif($Info{"Status"} eq "unchanged") {
-                $Report .= "<td class='passed'>".$Info{"Status"}."</td>\n";
+                $Rows .= "<td class='passed'>".$Info{"Status"}."</td>\n";
             }
             elsif($Info{"Status"} eq "removed") {
-                $Report .= "<td class='failed'>".$Info{"Status"}."</td>\n";
+                $Rows .= "<td class='failed'>".$Info{"Status"}."</td>\n";
             }
             elsif($Info{"Status"} eq "added") {
-                $Report .= "<td class='new'>".$Info{"Status"}."</td>\n";
+                $Rows .= "<td class='new'>".$Info{"Status"}."</td>\n";
             }
             elsif($Info{"Status"} eq "renamed") {
-                $Report .= "<td class='renamed'$Join>".$Info{"Status"}."</td>\n";
+                $Rows .= "<td class='renamed'$Join>".$Info{"Status"}."</td>\n";
             }
             elsif($Info{"Status"} eq "moved") {
-                $Report .= "<td class='moved'$Join>".$Info{"Status"}."</td>\n";
+                $Rows .= "<td class='moved'$Join>".$Info{"Status"}."</td>\n";
             }
             else {
-                $Report .= "<td>unknown</td>\n";
+                $Rows .= "<td>unknown</td>\n";
             }
             if($Format ne "DIR")
             {
                 if(not $QuickMode and not $Info{"Skipped"}
                 and $Info{"Status"}=~/\A(changed|moved|renamed)\Z/) {
-                    $Report .= "<td class='value'$Join>".showNumber($Info{"Rate"}*100)."%</td>\n";
+                    $Rows .= "<td class='value'$Join>".showNumber($Info{"Rate"}*100)."%</td>\n";
                 }
                 else {
-                    $Report .= "<td$Join></td>\n";
+                    $Rows .= "<td$Join></td>\n";
                 }
                 if(my $Link = $Info{"Diff"}) {
-                    $Report .= "<td$Join><a href='".encodeUrl($Link)."' target=\'$LinksTarget\'>diff</a></td>\n";
+                    $Rows .= "<td$Join><a href='".encodeUrl($Link)."' target=\'$LinksTarget\'>diff</a></td>\n";
                 }
                 elsif($Info{"Empty"}) {
-                    $Report .= "<td$Join></td>\n";
+                    $Rows .= "<td$Join></td>\n";
                 }
                 elsif($Info{"Skipped"}) {
-                    $Report .= "<td$Join>skipped</td>\n";
+                    $Rows .= "<td$Join>skipped</td>\n";
                 }
                 else {
-                    $Report .= "<td$Join></td>\n";
+                    $Rows .= "<td$Join></td>\n";
                 }
 
                 if($ShowDetails)
                 {
                     if(my $Link = $Info{"Report"}) {
-                        $Report .= "<td$Join><a href='".encodeUrl($Link)."' target=\'$LinksTarget\'>report</a></td>\n";
+                        $Rows .= "<td$Join><a href='".encodeUrl($Link)."' target=\'$LinksTarget\'>report</a></td>\n";
                     }
                     else {
-                        $Report .= "<td$Join></td>\n";
+                        $Rows .= "<td$Join></td>\n";
                     }
 
                     if($Format eq "SHARED_OBJECT"
@@ -2302,10 +2275,10 @@ sub getReportFiles()
                             my $Link1 = $Info{"ABIDump"}{1};
                             my $Link2 = $Info{"ABIDump"}{2};
 
-                            $Report .= "<td$Join><a href='".encodeUrl($Link1)."' target=\'$LinksTarget\'>1</a>, <a href='".encodeUrl($Link2)."' target=\'$LinksTarget\'>2</a></td>\n";
+                            $Rows .= "<td$Join><a href='".encodeUrl($Link1)."' target=\'$LinksTarget\'>1</a>, <a href='".encodeUrl($Link2)."' target=\'$LinksTarget\'>2</a></td>\n";
                         }
                         else {
-                            $Report .= "<td$Join></td>\n";
+                            $Rows .= "<td$Join></td>\n";
                         }
                         if($Debug)
                         {
@@ -2314,23 +2287,55 @@ sub getReportFiles()
                                 my $Link1 = $Info{"DWARFDump"}{1};
                                 my $Link2 = $Info{"DWARFDump"}{2};
 
-                                $Report .= "<td$Join><a href='".encodeUrl($Link1)."' target=\'$LinksTarget\'>1</a>, <a href='".encodeUrl($Link2)."' target=\'$LinksTarget\'>2</a></td>\n";
+                                $Rows .= "<td$Join><a href='".encodeUrl($Link1)."' target=\'$LinksTarget\'>1</a>, <a href='".encodeUrl($Link2)."' target=\'$LinksTarget\'>2</a></td>\n";
                             }
                             else {
-                                $Report .= "<td$Join></td>\n";
+                                $Rows .= "<td$Join></td>\n";
                             }
                         }
                     }
                 }
             }
-            $Report .= "</tr>\n";
+            $Rows .= "</tr>\n";
             if(my $RenamedTo = $RenamedFiles{$File}) {
-                $Report .= "<tr><td class='left f_path $Color2\'>".$RenamedTo."</td></tr>\n";
+                $Rows .= "<tr><td class='left f_path $Color2\'>".$RenamedTo."</td></tr>\n";
             }
             elsif(my $MovedTo = $MovedFiles{$File}) {
-                $Report .= "<tr><td class='left f_path $Color2\'>".$MovedTo."</td></tr>\n";
+                $Rows .= "<tr><td class='left f_path $Color2\'>".$MovedTo."</td></tr>\n";
             }
         }
+
+        next if not $Rows;
+
+        $Report .= "<a name='".$FormatInfo{$Format}{"Anchor"}."'></a>\n";
+        $Report .= "<h2>".$FormatInfo{$Format}{"Title"}." (".$FileChanges{$Format}{"Total"}.")</h2>\n";
+        $Report .= "<table class='summary highlight'>\n";
+        $Report .= "<tr>\n";
+        $Report .= "<th $JSort>Name</th>\n";
+        $Report .= "<th $JSort>Status</th>\n";
+        if($Format ne "DIR")
+        {
+            $Report .= "<th $JSort>Delta</th>\n";
+            $Report .= "<th>Visual<br/>Diff</th>\n";
+
+            if($ShowDetails)
+            {
+                $Report .= "<th>Detailed<br/>Report</th>\n";
+
+                if($Format eq "SHARED_OBJECT"
+                or $Format eq "KERNEL_MODULE"
+                or $Format eq "DEBUG_INFO"
+                or $Format eq "STATIC_LIBRARY")
+                {
+                    $Report .= "<th>ABI<br/>Dumps</th>\n";
+                    if($Debug) {
+                        $Report .= "<th>DWARF<br/>Dumps</th>\n";
+                    }
+                }
+            }
+        }
+        $Report .= "</tr>\n";
+        $Report .= $Rows;
         $Report .= "</table>\n";
     }
     return $Report;
